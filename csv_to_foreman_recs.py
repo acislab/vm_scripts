@@ -5,6 +5,7 @@
 # Foreman pkg docs: http://python-foreman.readthedocs.io/en/latest/basic/
 # Foreman api docs: https://theforeman.org/api/1.14/index.html
 
+import sys
 import fileinput
 from foreman.client import Foreman
 
@@ -14,20 +15,22 @@ with open("password_foreman.txt") as f:
 fore = Foreman(url="https://foreman-crn.acis.ufl.edu", api_version=2,
     auth=('mjcollin', password_foreman))
 
-fore.hosts.create(
-    host={
-        "name": "test.acis.ufl.edu",
-        "ip":   "10.244.39.100",
-        "mac":  "00:01:02:03:04:05",
-        # try going back to name when interface works
-        "hostgroup_id": "32",   # tried using *_name but didn't work, had to go 
-                                # get id from database:
-                                # select id,name,title from hostgroups;
-        "architecture_name": "x86_64", # try removing when interface works
-        "operatingsystem_name": "Ubuntu"# try removing when interface works
-        }
+for line in fileinput.input():
+    fields = line.split(",")
+    fqdn = fields[0]
+    hostname = fields[1]
+    ip = fields[2]
+    mac = fields[3]
 
-)
+    fore.hosts.create(
+        host={
+            "name": fqdn,
+            "ip":   ip,
+            "mac":  mac,
+            "build": True,
+            "hostgroup_id": "32"   # tried using *_name but didn't work, had to go 
+                                    # get id from database:
+                                    # select id,name,title from hostgroups;
+            }
+    )
 
-#        "architecture_name": "x86_64",
-#        "operatingsystem_name": "Ubuntu"
